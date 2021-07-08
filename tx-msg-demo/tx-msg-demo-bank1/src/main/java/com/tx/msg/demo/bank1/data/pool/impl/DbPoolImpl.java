@@ -1,7 +1,7 @@
 package com.tx.msg.demo.bank1.data.pool.impl;
 
+import com.tx.msg.demo.bank1.data.DBUtil;
 import com.tx.msg.demo.bank1.data.pool.DbPool;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -63,8 +63,10 @@ public class DbPoolImpl implements DbPool {
             // 通过 activeSize.incrementAndGet() <= maxSize 这个判断
             // 解决 if(activeSize.get() < maxSize) 存在的线程安全问题
             if (activeSize.getAndIncrement() <= maxSize){
-                //TODO 创建连接
-                connection = null;
+                // 创建连接
+                connection = DBUtil.createConnection();
+                activeConnectPool.offer(connection);
+                System.out.println("获取到连接");
                 return connection;
             }
         }
@@ -103,15 +105,15 @@ public class DbPoolImpl implements DbPool {
      *  不可以对busyConnectPool连接池中的连接进行健康检查，因为它正在被客户端使用;
      *
      */
-    @Scheduled(fixedDelay = 60 * 1000)
+//    @Scheduled(fixedDelay = 60 * 1000)
     public void check(){
         for (int i = 0; i < activeSize.get(); i++) {
             Connection connection = idleConnectPool.poll();
             try {
                 boolean valid = connection.isValid(2000);
                 if (!valid){
-                    //TODO 如果连接不可用则新创建一个连接
-                    connection = null;
+                    // 连接失效则创建一个新连接
+                    connection = DBUtil.createConnection();
                 }
                 idleConnectPool.offer(connection);// 放进一个可用的连接
             } catch (SQLException throwables) {

@@ -1,5 +1,6 @@
 package com.tx.msg.demo.bank1.mqtx;
 
+import com.tx.msg.demo.bank1.data.pool.DbPool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -16,11 +17,15 @@ public class MybatisTransactionMsgClient extends TransactionalMsgClient{
 
     private SqlSessionTemplate sessionTemplate;
 
-    public MybatisTransactionMsgClient(SqlSessionTemplate sessionTemplate,String mqAddr, List<DBDataSource> dbDataSources, List<String> topicLists) {
+    public MybatisTransactionMsgClient(SqlSessionTemplate sessionTemplate, String mqAddr, DbPool dbDataSources, List<String> topicLists) {
         super(mqAddr, dbDataSources, topicLists, new Config());
         this.sessionTemplate = sessionTemplate;
     }
-    public MybatisTransactionMsgClient(SqlSessionFactory sqlSessionFactory, String mqAddr, List<DBDataSource> dbDataSources, List<String> topicLists, Config config){
+    public MybatisTransactionMsgClient(SqlSessionTemplate sessionTemplate, String mqAddr, DbPool dbDataSources, List<String> topicLists, Config config) {
+        super(mqAddr, dbDataSources, topicLists, config);
+        this.sessionTemplate = sessionTemplate;
+    }
+    public MybatisTransactionMsgClient(SqlSessionFactory sqlSessionFactory, String mqAddr, DbPool dbDataSources, List<String> topicLists, Config config){
         super(mqAddr,dbDataSources,topicLists,config);
         //this.sqlSessionFactory = sqlSessionFactory;
         try {
@@ -30,7 +35,7 @@ public class MybatisTransactionMsgClient extends TransactionalMsgClient{
             log.error("get sqlSessionFactory fail",e);
         }
     }
-    public MybatisTransactionMsgClient(SqlSessionFactory sqlSessionFactory,String mqAddr,List<DBDataSource> dbDataSources,List<String> topicLists){
+    public MybatisTransactionMsgClient(SqlSessionFactory sqlSessionFactory,String mqAddr,DbPool dbDataSources,List<String> topicLists){
         this(sqlSessionFactory, mqAddr, dbDataSources, topicLists,new Config());
     }
 

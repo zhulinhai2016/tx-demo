@@ -1,12 +1,12 @@
 package com.tx.msg.demo.bank1.mqtx;
 
+import com.tx.msg.demo.bank1.data.pool.DbPool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 
 import java.sql.Connection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -21,14 +21,14 @@ public abstract class TransactionalMsgClient {
     private DefaultMQProducer producer;
     private String mqAddr;
     // 数据源配置
-    private List<DBDataSource> dbDataSources;
+    private DbPool dbDataSources;
     protected MsgProcessor msgProcessor;
     private MsgStorage msgStorage;
     private Config config;
     private AtomicReference<State> state;
     private List<String> topicLists;
 
-    public TransactionalMsgClient(String mqAddr, List<DBDataSource> dbDataSources, List<String> topicLists, Config config) {
+    public TransactionalMsgClient(String mqAddr, DbPool dbDataSources, List<String> topicLists, Config config) {
         this.mqAddr = mqAddr;
         this.dbDataSources = dbDataSources;
         this.topicLists = topicLists;
@@ -39,6 +39,11 @@ public abstract class TransactionalMsgClient {
         msgProcessor = new MsgProcessor(producer, msgStorage);
         this.config = config;
         state = new AtomicReference<State>(State.CREATE);
+        try {
+            init();
+        } catch (MQClientException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -113,9 +118,9 @@ public abstract class TransactionalMsgClient {
                 throw new Exception("connection not in transaction con "+con);
             }
             // 事务消息入库
-            Map.Entry<Long,String> idUrlPair = msgStorage.insertMsg(con, content, topic, tag);
-            id = idUrlPair.getKey();
-            Msg msg = new Msg(id,idUrlPair.getValue());
+            int ids = msgStorage.insertMsg(con, content, topic, tag);
+            id = Long.parseLong(String.valueOf(ids));
+            Msg msg = new Msg(id,id+"");
             // 异步发送消息
             msgProcessor.putMsg(msg);
 
@@ -136,11 +141,11 @@ public abstract class TransactionalMsgClient {
         this.mqAddr = mqAddr;
     }
 
-    public List<DBDataSource> getDbDataSources() {
+    public DbPool getDbDataSources() {
         return dbDataSources;
     }
 
-    public void setDbDataSources(List<DBDataSource> dbDataSources) {
+    public void setDbDataSources(DbPool dbDataSources) {
         this.dbDataSources = dbDataSources;
     }
 

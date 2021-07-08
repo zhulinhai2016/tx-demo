@@ -22,6 +22,8 @@ public class AccountInfoController {
     private AccountInfoService accountInfoService;
     @Autowired
     Config config;
+
+
     @GetMapping(value = "/transfer")
     public String transfer(@RequestParam("accountNo")String accountNo, @RequestParam("amount") Double amount){
         //创建一个事务id，作为消息内容发到mq

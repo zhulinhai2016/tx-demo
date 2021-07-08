@@ -1,22 +1,24 @@
 package com.tx.msg.demo.bank1.mqtx;
 
+import com.tx.msg.demo.bank1.data.pool.DbPool;
+
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Author: ZhuLinHai
  * @Date: 2021/7/5 14:45
  **/
 public class MsgStorage {
-    private List<DBDataSource> dbDataSources;
+    private DbPool dbDataSources;
     private List<String> topicLists;
 
-    public MsgStorage(List<DBDataSource> dbDataSources, List<String> topicLists) {
+    public MsgStorage(DbPool dbDataSources, List<String> topicLists) {
         this.dbDataSources = dbDataSources;
         this.topicLists = topicLists;
     }
@@ -34,12 +36,17 @@ public class MsgStorage {
 
     }
 
-    public Map.Entry<Long,String> insertMsg(Connection con, String content, String topic, String tag) throws SQLException{
-        String sql = "insert into tx_msg values(?,?,?,?)";
+    public int insertMsg(Connection con, String content, String topic, String tag) throws SQLException{
+        String sql = "insert into tx_message (content,topic,tag,status,create_time)  values(?,?,?,?,?)";
         PreparedStatement ps = con.prepareStatement(sql);
+        ps.setString(1,content);
+        ps.setString(2,topic);
+        ps.setString(3,tag);
+        ps.setInt(4,0);
+//        ps.setDate(5, (java.sql.Date) new Date());
+        ps.setTimestamp(5, new Timestamp(System.currentTimeMillis()));
         int i = ps.executeUpdate();
-
-        return null;
+        return i;
     }
 
     public MsgInfo getMsgById(Msg msg){

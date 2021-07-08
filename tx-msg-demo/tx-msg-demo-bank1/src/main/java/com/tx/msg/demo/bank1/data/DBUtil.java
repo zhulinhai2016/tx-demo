@@ -12,17 +12,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @Date: 2021/7/7 18:11
  **/
 public class DBUtil {
-    private String driverClass = "com.mysql.jdbc.Driver";
-    private String url = "jdbc:mysql://localhost:3306/testdb";
-    private String username = "root";
-    private String password = "123456";
-    private AtomicBoolean inited = new AtomicBoolean(false);
+    private static String driverClass = "com.mysql.jdbc.Driver";
+    private static String url = "jdbc:mysql://localhost:3306/bank1?useUnicode=true&characterEncoding=utf-8&useSSL=false";
+    private static String username = "root";
+    private static String password = "root";
+    private static AtomicBoolean inited = new AtomicBoolean(false);
 
     /**
      * 创建数据库连接
      * @return
      */
-    public Connection createConnection(){
+    public static Connection createConnection(){
         Connection connection = null;
         try {
             if (!inited.get()){
